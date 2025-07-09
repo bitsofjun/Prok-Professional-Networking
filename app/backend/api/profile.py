@@ -9,7 +9,7 @@ import secrets
 import json
 
 profile_bp = Blueprint('profile', __name__)
-
+ 
 UPLOAD_FOLDER = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'uploads/profile_images')
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 MAX_IMAGE_SIZE = 5 * 1024 * 1024  # 5MB

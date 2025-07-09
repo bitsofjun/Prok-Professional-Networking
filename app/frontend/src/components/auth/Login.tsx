@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { authApi } from './api';
+import { useAuth } from '../../context/AuthContext';
 
 const Login: React.FC = () => {
   const [form, setForm] = useState({ usernameOrEmail: '', password: '' });
@@ -9,10 +10,10 @@ const Login: React.FC = () => {
   const [apiError, setApiError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
   const navigate = useNavigate();
+  const { login } = useAuth();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
-    // Clear errors when user starts typing
     if (errors[e.target.name as keyof typeof errors]) {
       setErrors({ ...errors, [e.target.name]: undefined });
     }
@@ -37,18 +38,14 @@ const Login: React.FC = () => {
 
     try {
       const response = await authApi.login(form);
-      
       if (response.error) {
         setApiError(response.error);
       } else {
-        // Show success message briefly before redirecting
         setSuccessMessage('Login successful! Redirecting to profile...');
-        // Store user data in localStorage or context
-        localStorage.setItem('user', JSON.stringify(response.user));
-        // Redirect to profile after a brief delay
+        login(response.user); // Use context login
         setTimeout(() => {
           navigate('/profile');
-        }, 1500);
+        }, 1000);
       }
     } catch (error) {
       setApiError('Network error. Please try again.');
@@ -58,22 +55,19 @@ const Login: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="max-w-md w-full space-y-8 p-8 bg-white rounded-lg shadow">
+    <div className="flex justify-center bg-gray-50 py-16 min-h-[calc(100vh-4rem)]">
+      <div className="max-w-md w-full space-y-8 p-8 bg-white rounded-lg shadow mt-8">
         <h2 className="text-3xl font-bold text-center text-gray-900">Login</h2>
-        
         {apiError && (
           <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
             {apiError}
           </div>
         )}
-        
         {successMessage && (
           <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded">
             {successMessage}
           </div>
         )}
-        
         <form className="space-y-6" onSubmit={handleSubmit} noValidate>
           <div>
             <label className="block text-gray-700">Username or Email</label>

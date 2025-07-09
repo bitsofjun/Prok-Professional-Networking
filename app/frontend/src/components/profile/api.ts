@@ -16,13 +16,13 @@ export const profileApi = {
 
   updateProfile: async (profileData: any) => {
     try {
-      const response = await fetch(`${API_URL}/profile`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(profileData),
-      });
+    const response = await fetch(`${API_URL}/profile`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(profileData),
+    });
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }

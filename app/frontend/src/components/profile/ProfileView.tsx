@@ -106,7 +106,7 @@ const ProfileView: React.FC = () => {
             <div className="text-gray-500">{location}</div>
           </div>
           {/* Languages */}
-          <div className="bg-white rounded-lg shadow p-6">
+      <div className="bg-white rounded-lg shadow p-6">
             <h2 className="text-lg font-semibold mb-2">Languages</h2>
             <ul>
               <li>Tamil <span className="text-gray-400 text-xs">Native</span></li>

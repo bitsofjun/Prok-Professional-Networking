@@ -7,7 +7,7 @@ import os
 from flask import send_from_directory
 
 app = Flask(__name__)
-CORS(app, origins=["http://localhost:5173"], supports_credentials=True)
+CORS(app, origins=['http://localhost:5173'], supports_credentials=True)
 app.config['SQLALCHEMY_DATABASE_URI'] = "mysql+pymysql://root:arjun*0347@localhost/prok_db"
 app.config['MAX_CONTENT_LENGTH'] = MAX_CONTENT_LENGTH
 
@@ -26,5 +26,11 @@ def uploaded_file(filename):
     upload_folder = os.path.join(os.path.dirname(__file__), 'uploads/profile_images')
     return send_from_directory(upload_folder, filename)
 
+# Static file route for post media
+@app.route('/uploads/post_media/<filename>')
+def uploaded_post_media(filename):
+    upload_folder = os.path.join(os.path.dirname(__file__), 'uploads/post_media')
+    return send_from_directory(upload_folder, filename)
+
 if __name__ == "__main__":
-    app.run(debug=True, port=5001)
+    app.run(port=5001, debug=True)

@@ -76,13 +76,13 @@ const ProfileEdit: React.FC = () => {
   // Handle education/experience/contact changes
   const handleEduChange = (idx: number, e: React.ChangeEvent<HTMLInputElement>) => {
     const updated = [...form.education];
-    (updated[idx] as EducationItem)[e.target.name] = e.target.value;
+    (updated[idx] as EducationItem)[e.target.name as keyof EducationItem] = e.target.value;
     setForm({ ...form, education: updated });
   };
 
   const handleExpChange = (idx: number, e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const updated = [...form.experience];
-    (updated[idx] as ExperienceItem)[e.target.name] = e.target.value;
+    (updated[idx] as ExperienceItem)[e.target.name as keyof ExperienceItem] = e.target.value;
     setForm({ ...form, experience: updated });
   };
 
