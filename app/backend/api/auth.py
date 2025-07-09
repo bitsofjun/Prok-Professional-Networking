@@ -2,6 +2,7 @@ from flask import Blueprint, request, jsonify
 from werkzeug.security import generate_password_hash, check_password_hash
 from extensions import db
 from models.user import User
+from models.profile import Profile
 
 auth_bp = Blueprint('auth', __name__)
 
@@ -60,6 +61,10 @@ def signup():
     
     try:
         db.session.add(new_user)
+        db.session.commit()
+        # Auto-create profile for new user
+        new_profile = Profile(user_id=new_user.id, name=username)
+        db.session.add(new_profile)
         db.session.commit()
         
         return jsonify({

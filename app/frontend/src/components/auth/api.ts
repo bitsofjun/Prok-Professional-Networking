@@ -1,4 +1,4 @@
-const API_URL = 'http://localhost:5000/api';
+const API_URL = 'http://localhost:5001/api';
 
 export const authApi = {
   login: async (credentials: { usernameOrEmail: string; password: string }) => {
@@ -15,6 +15,24 @@ export const authApi = {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(userData),
+    });
+    return response.json();
+  },
+};
+
+export const profileApi = {
+  getProfile: async () => {
+    const response = await fetch(`${API_URL}/profile`);
+    return response.json();
+  },
+
+  updateProfile: async (profileData: any) => {
+    const response = await fetch(`${API_URL}/profile`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(profileData),
     });
     return response.json();
   },

@@ -1,5 +1,7 @@
 from extensions import db
 from datetime import datetime
+from .profile import Profile
+from sqlalchemy.orm import relationship
 
 class User(db.Model):
     __tablename__ = 'users'
@@ -10,6 +12,7 @@ class User(db.Model):
     password_hash = db.Column(db.String(255), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    
+    # profile relationship is set up in Profile with backref
+    relationship
     def __repr__(self):
         return f'<User {self.username}>'

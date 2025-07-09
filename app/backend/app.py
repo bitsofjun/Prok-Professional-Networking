@@ -1,41 +1,30 @@
 from flask import Flask
 from flask_cors import CORS
-from extensions import db, migrate
-from config import Config
+from config import MAX_CONTENT_LENGTH
+from api import auth_bp, profile_bp, posts_bp, feed_bp, jobs_bp, messaging_bp
+from extensions import db
+import os
+from flask import send_from_directory
 
-def create_app(config_class=Config):
-    """Application factory function"""
-    app = Flask(__name__)
-    app.config.from_object(config_class)
-    
-    # Initialize extensions
-    db.init_app(app)
-    migrate.init_app(app, db)
-    CORS(app)
-    
-    # Import and register blueprints
-    from api.auth import auth_bp
-    from api.feed import feed_bp
-    from api.jobs import jobs_bp
-    from api.messaging import messaging_bp
-    from api.posts import posts_bp
-    from api.profile import profile_bp
-    
-    app.register_blueprint(auth_bp, url_prefix='/api/auth')
-    app.register_blueprint(feed_bp, url_prefix='/api/feed')
-    app.register_blueprint(jobs_bp, url_prefix='/api/jobs')
-    app.register_blueprint(messaging_bp, url_prefix='/api/messaging')
-    app.register_blueprint(posts_bp, url_prefix='/api/posts')
-    app.register_blueprint(profile_bp, url_prefix='/api/profile')
+app = Flask(__name__)
+CORS(app, origins=["http://localhost:5173"], supports_credentials=True)
+app.config['SQLALCHEMY_DATABASE_URI'] = "mysql+pymysql://root:arjun*0347@localhost/prok_db"
+app.config['MAX_CONTENT_LENGTH'] = MAX_CONTENT_LENGTH
 
-    return app
+db.init_app(app)
 
-# Create app instance for Flask CLI
-app = create_app()
+app.register_blueprint(auth_bp, url_prefix='/api/auth')
+app.register_blueprint(profile_bp, url_prefix='/api')
+app.register_blueprint(posts_bp, url_prefix='/api')
+app.register_blueprint(feed_bp, url_prefix='/api')
+app.register_blueprint(jobs_bp, url_prefix='/api')
+app.register_blueprint(messaging_bp, url_prefix='/api')
 
-# Import models inside app context to avoid circular imports
-with app.app_context():
-    from models.user import User
+# Static file route for profile images
+@app.route('/uploads/profile_images/<filename>')
+def uploaded_file(filename):
+    upload_folder = os.path.join(os.path.dirname(__file__), 'uploads/profile_images')
+    return send_from_directory(upload_folder, filename)
 
-if __name__ == '__main__':
-    app.run(debug=True)
+if __name__ == "__main__":
+    app.run(debug=True, port=5001)
