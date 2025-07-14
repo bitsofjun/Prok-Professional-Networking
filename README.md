@@ -238,3 +238,79 @@ You'll know you've successfully completed this tutorial when you can:
 ---
 
 > 💡 **Remember:** This is a learning-focused project. Take your time to understand each concept before moving to the next module.
+
+---
+
+Thank you for sharing the screenshot. Since you are still seeing the same default data ("ponting", "cricketer", "ricky", etc.) in the Edit Profile form, this means the backend is still returning this data for your user.
+
+**This is not a frontend bug anymore.**  
+The frontend is displaying whatever the backend returns for the current user. The root cause is that the backend is returning existing profile data for your user (user_id=1), which was likely created earlier with these values.
+
+### Why is this happening?
+
+- The backend now only returns empty fields if **no profile exists** for the user.
+- If a profile already exists in the database for your user (user_id=1), it will return that data, even if it is "ponting", "cricketer", etc.
+- The backend is still using a hardcoded user_id=1, so every login/edit is for the same user.
+
+---
+
+## How to Fix This
+
+### 1. **Clear or Reset the Profile Data in the Database**
+
+You need to either:
+- **Delete the existing profile row** for user_id=1 in your database, or
+- **Update the profile row** to have empty values.
+
+#### Option A: Delete the Profile Row (Recommended for Clean Slate)
+
+If you have access to your database (MySQL), run:
+
+```sql
+DELETE FROM profiles WHERE user_id=1;
+```
+
+Or, if using SQLite:
+
+```sql
+DELETE FROM profiles WHERE user_id=1;
+```
+
+#### Option B: Update the Profile Row to Empty Values
+
+```sql
+UPDATE profiles
+SET name='', title='', location='', bio='', skills='', education='', experience='', contact='', social='', activity='', avatar=''
+WHERE user_id=1;
+```
+
+---
+
+### 2. **Restart the Backend and Frontend**
+
+After clearing the data, restart your backend and frontend servers to ensure changes take effect.
+
+---
+
+### 3. **Reload the Edit Profile Page**
+
+- Now, when you visit the Edit Profile page, the backend will return empty fields for user_id=1, and the form will be blank.
+
+---
+
+## **Why This Works**
+
+- The backend only returns empty fields if there is **no profile** for the user.
+- If a profile exists, it returns the data from the database.
+- You had a profile with "ponting", "cricketer", etc. already saved for user_id=1.
+
+---
+
+## **Long-Term Solution**
+
+- Implement real user authentication (JWT) so each user gets their own profile.
+- For now, clearing the profile for user_id=1 will fix the issue for your current setup.
+
+---
+
+**Let me know if you want a script to clear the profile data automatically, or if you need help running the SQL command!**

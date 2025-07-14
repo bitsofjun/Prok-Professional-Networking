@@ -1,35 +1,32 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { authApi } from './api';
+import { useAuth } from '../../context/AuthContext';
 
 const Signup: React.FC = () => {
-  const [form, setForm] = useState({ username: '', email: '', password: '', confirm_password: '' });
-  const [errors, setErrors] = useState<{ username?: string; email?: string; password?: string; confirm_password?: string }>({});
+  const [form, setForm] = useState({ username: '', email: '', password: '' });
+  const [errors, setErrors] = useState<{ username?: string; email?: string; password?: string }>({});
   const [isLoading, setIsLoading] = useState(false);
   const [apiError, setApiError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
-  const [isSuccess, setIsSuccess] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
+  const { login } = useAuth();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
-    // Clear errors when user starts typing
     if (errors[e.target.name as keyof typeof errors]) {
       setErrors({ ...errors, [e.target.name]: undefined });
     }
     setApiError('');
     setSuccessMessage('');
-    setIsSuccess(false);
   };
 
   const validate = () => {
-    const newErrors: { username?: string; email?: string; password?: string; confirm_password?: string } = {};
+    const newErrors: { username?: string; email?: string; password?: string } = {};
     if (!form.username) newErrors.username = 'Username is required';
     if (!form.email) newErrors.email = 'Email is required';
     if (!form.password) newErrors.password = 'Password is required';
-    else if (form.password.length < 8) newErrors.password = 'Password must be at least 8 characters';
-    if (!form.confirm_password) newErrors.confirm_password = 'Please confirm your password';
-    else if (form.password !== form.confirm_password) newErrors.confirm_password = 'Passwords do not match';
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -42,21 +39,14 @@ const Signup: React.FC = () => {
     setApiError('');
 
     try {
-      const response = await authApi.signup({
-        username: form.username,
-        email: form.email,
-        password: form.password
-      });
-      
+      const response = await authApi.signup(form);
       if (response.error) {
         setApiError(response.error);
       } else {
-        // Show success message
-        setSuccessMessage('Account created successfully! You can now login.');
-        setIsSuccess(true);
-        // Clear form
-        setForm({ username: '', email: '', password: '', confirm_password: '' });
-        // Don't redirect - let user login manually
+        setSuccessMessage('Signup successful! Redirecting to login...');
+        setTimeout(() => {
+          navigate('/login');
+        }, 1000);
       }
     } catch (error) {
       setApiError('Network error. Please try again.');
@@ -66,83 +56,78 @@ const Signup: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="max-w-md w-full space-y-8 p-8 bg-white rounded-lg shadow">
-        <h2 className="text-3xl font-bold text-center text-gray-900">Sign Up</h2>
-        
-        {apiError && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
-            {apiError}
-          </div>
-        )}
-        
-        {isSuccess && (
-          <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded">
-            {successMessage}
-          </div>
-        )}
-        
-        <form className="space-y-6" onSubmit={handleSubmit} noValidate>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-100 via-purple-100 to-teal-100">
+      <div className="bg-white/80 backdrop-blur-md rounded-2xl shadow-2xl p-8 w-full max-w-md">
+        <h2 className="text-3xl font-bold text-center text-blue-700 mb-6 drop-shadow">
+          Create your <span className="text-purple-600">ProkNet</span> account
+        </h2>
+        <form onSubmit={handleSubmit} className="space-y-6">
           <div>
-            <label className="block text-gray-700">Username</label>
+            <label className="block text-gray-700 font-semibold mb-1">Username</label>
             <input
               type="text"
               name="username"
               value={form.username}
               onChange={handleChange}
-              className="mt-1 w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none transition"
               disabled={isLoading}
+              autoFocus
             />
-            {errors.username && <p className="text-red-500 text-sm">{errors.username}</p>}
+            {errors.username && <div className="text-red-500 text-sm mt-1">{errors.username}</div>}
           </div>
           <div>
-            <label className="block text-gray-700">Email</label>
+            <label className="block text-gray-700 font-semibold mb-1">Email</label>
             <input
               type="email"
               name="email"
               value={form.email}
               onChange={handleChange}
-              className="mt-1 w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none transition"
               disabled={isLoading}
             />
-            {errors.email && <p className="text-red-500 text-sm">{errors.email}</p>}
+            {errors.email && <div className="text-red-500 text-sm mt-1">{errors.email}</div>}
           </div>
           <div>
-            <label className="block text-gray-700">Password</label>
-            <input
-              type="password"
-              name="password"
-              value={form.password}
-              onChange={handleChange}
-              className="mt-1 w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-              disabled={isLoading}
-            />
-            {errors.password && <p className="text-red-500 text-sm">{errors.password}</p>}
+            <label className="block text-gray-700 font-semibold mb-1">Password</label>
+            <div className="relative">
+              <input
+                type={showPassword ? 'text' : 'password'}
+                name="password"
+                value={form.password}
+                onChange={handleChange}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none transition pr-10"
+                disabled={isLoading}
+              />
+              <button
+                type="button"
+                tabIndex={-1}
+                className="absolute inset-y-0 right-0 px-3 flex items-center text-gray-400 hover:text-blue-600 focus:outline-none"
+                onClick={() => setShowPassword((prev) => !prev)}
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
+              >
+                {showPassword ? (
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-5.523 0-10-4.477-10-10 0-1.657.403-3.221 1.125-4.575m1.664-2.13A9.956 9.956 0 0112 3c5.523 0 10 4.477 10 10 0 1.657-.403 3.221-1.125 4.575m-1.664 2.13A9.956 9.956 0 0112 21c-5.523 0-10-4.477-10-10 0-1.657.403-3.221 1.125-4.575" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                ) : (
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-5.523 0-10-4.477-10-10 0-1.657.403-3.221 1.125-4.575m1.664-2.13A9.956 9.956 0 0112 3c5.523 0 10 4.477 10 10 0 1.657-.403 3.221-1.125 4.575m-1.664 2.13A9.956 9.956 0 0112 21c-5.523 0-10-4.477-10-10 0-1.657.403-3.221 1.125-4.575" /></svg>
+                )}
+              </button>
+            </div>
+            {errors.password && <div className="text-red-500 text-sm mt-1">{errors.password}</div>}
           </div>
-          <div>
-            <label className="block text-gray-700">Confirm Password</label>
-            <input
-              type="password"
-              name="confirm_password"
-              value={form.confirm_password}
-              onChange={handleChange}
-              className="mt-1 w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-              disabled={isLoading}
-            />
-            {errors.confirm_password && <p className="text-red-500 text-sm">{errors.confirm_password}</p>}
-          </div>
+          {apiError && <div className="text-red-600 bg-red-50 rounded p-2 text-center">{apiError}</div>}
+          {successMessage && <div className="text-green-600 bg-green-50 rounded p-2 text-center">{successMessage}</div>}
           <button
             type="submit"
-            className="w-full py-2 px-4 bg-blue-600 text-white rounded hover:bg-blue-700 transition disabled:opacity-50"
+            className="w-full bg-gradient-to-r from-blue-500 to-purple-500 text-white font-bold py-2 rounded-full shadow-lg hover:scale-105 hover:from-purple-500 hover:to-blue-500 transition-all duration-200"
             disabled={isLoading}
           >
-            {isLoading ? 'Creating account...' : 'Sign Up'}
+            {isLoading ? 'Signing up...' : 'Sign Up'}
           </button>
         </form>
-        <p className="text-center text-gray-600">
+        <div className="mt-6 text-center text-gray-600">
           Already have an account?{' '}
-          <Link to="/login" className="text-blue-600 hover:underline">Login</Link>
-        </p>
+          <Link to="/login" className="text-blue-600 font-semibold hover:underline">Sign In</Link>
+        </div>
       </div>
     </div>
   );

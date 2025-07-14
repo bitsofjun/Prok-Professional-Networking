@@ -4,6 +4,7 @@ from models.post import Post
 import os
 from werkzeug.utils import secure_filename
 from datetime import datetime
+from flask_jwt_extended import jwt_required, get_jwt_identity
 
 posts_bp = Blueprint('posts', __name__)
  
@@ -18,8 +19,9 @@ def ensure_upload_folder():
     os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 @posts_bp.route('/posts', methods=['POST'])
+@jwt_required()
 def create_post():
-    user_id = 1  # Replace with actual user auth in production
+    user_id = get_jwt_identity()
     content = request.form.get('content')
     is_public = request.form.get('is_public', 'true').lower() == 'true'
     allow_comments = request.form.get('allow_comments', 'true').lower() == 'true'

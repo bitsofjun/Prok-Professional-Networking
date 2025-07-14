@@ -1,5 +1,7 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { profileApi } from "./api";
+import defaultAvatar from "../../assets/react.svg"; // Or your default avatar path
 
 const IMAGE_URL = "http://localhost:5001";
 
@@ -29,39 +31,30 @@ const ProfileEdit: React.FC = () => {
   const [success, setSuccess] = useState("");
   const [avatarPreview, setAvatarPreview] = useState<string>("");
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    loadProfile();
-  }, []);
-
-  const loadProfile = async () => {
-    try {
-      setLoading(true);
-      setError("");
-      const data = await profileApi.getProfile();
-      
-      if (data.error) {
-        setError(data.error);
-      } else {
+    profileApi.getProfile()
+      .then((data) => {
         setForm({
           name: data.name || "",
           title: data.title || "",
           location: data.location || "",
           bio: data.bio || "",
-          skills: data.skills ? data.skills.split(',').map((s: string) => s.trim()).filter((s: string) => s) : [],
-          education: data.education && data.education.length ? data.education : [ { ...emptyEdu } ],
-          experience: data.experience && data.experience.length ? data.experience : [ { ...emptyExp } ],
+          skills: data.skills ? data.skills.split(",").map((s: string) => s.trim()).filter((s: string) => s) : [],
+          education: Array.isArray(data.education) && data.education.length > 0 ? data.education : [{ ...emptyEdu }],
+          experience: Array.isArray(data.experience) && data.experience.length > 0 ? data.experience : [{ ...emptyExp }],
           contact: data.contact || { ...emptyContact },
-          avatar: data.avatar || ""
+          avatar: data.avatar || "",
         });
         setAvatarPreview(data.avatar ? `${IMAGE_URL}/uploads/profile_images/${data.avatar}` : "");
-      }
-    } catch (error) {
-      setError("Failed to load profile.");
-    } finally {
-      setLoading(false);
-    }
-  };
+        setLoading(false);
+      })
+      .catch(() => {
+        setError("Failed to load profile");
+        setLoading(false);
+      });
+  }, []);
 
   // Handle simple field changes
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -92,9 +85,9 @@ const ProfileEdit: React.FC = () => {
 
   // Add/remove education/experience
   const addEdu = () => setForm({ ...form, education: [...form.education, { ...emptyEdu }] });
-  const removeEdu = (idx: number) => setForm({ ...form, education: form.education.filter((_, i) => i !== idx) });
+  const removeEdu = (idx: number) => setForm({ ...form, education: form.education.filter((_: any, i: number) => i !== idx) });
   const addExp = () => setForm({ ...form, experience: [...form.experience, { ...emptyExp }] });
-  const removeExp = (idx: number) => setForm({ ...form, experience: form.experience.filter((_, i) => i !== idx) });
+  const removeExp = (idx: number) => setForm({ ...form, experience: form.experience.filter((_: any, i: number) => i !== idx) });
 
   // Profile photo upload
   const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -136,40 +129,33 @@ const ProfileEdit: React.FC = () => {
     }
   };
 
-  // Logout
-  const handleLogout = () => {
-    localStorage.clear();
-    window.location.href = "/login";
-  };
-
   // Submit
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     setSuccess("");
 
-    try {
-      const payload = {
-        name: form.name,
-        title: form.title,
-        location: form.location,
-        bio: form.bio,
-        skills: form.skills.join(", "),
-        education: form.education,
-        experience: form.experience,
-        contact: form.contact,
-      };
+    // Sanitize all fields and ensure no undefined/null
+    const payload = {
+      name: form.name?.trim() || '',
+      title: form.title?.trim() || '',
+      location: form.location?.trim() || '',
+      bio: form.bio?.trim() || '',
+      skills: Array.isArray(form.skills) ? form.skills.join(", ") : '',
+      education: Array.isArray(form.education) ? form.education : [],
+      experience: Array.isArray(form.experience) ? form.experience : [],
+      contact: form.contact ?? {},
+    };
 
+    try {
       const result = await profileApi.updateProfile(payload);
-      
-      if (result.error) {
+      if (result?.error) {
         setError(result.error);
       } else {
-        setSuccess("Profile updated successfully!");
-        await loadProfile();
+        navigate('/profile', { state: { success: 'Profile updated successfully!' } });
       }
-    } catch (error) {
-      setError("Failed to update profile. Please try again.");
+    } catch (error: any) {
+      setError(error?.message || "Failed to update profile. Please try again.");
     }
   };
 
@@ -184,130 +170,104 @@ const ProfileEdit: React.FC = () => {
   );
 
   return (
-    <div className="max-w-2xl mx-auto p-4">
-      <div className="bg-white rounded-lg shadow p-6">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-4">
-            <div className="relative">
-              <img
-                src={avatarPreview || "/default-avatar.svg"}
-                alt="Profile"
-                className="w-20 h-20 rounded-full object-cover border"
-                onClick={() => fileInputRef.current?.click()}
-                style={{ cursor: "pointer" }}
-              />
-              {uploading && (
-                <div className="absolute inset-0 bg-black bg-opacity-50 rounded-full flex items-center justify-center">
-                  <div className="text-white text-xs">Uploading...</div>
-                </div>
-              )}
-              <input
-                type="file"
-                accept="image/*"
-                style={{ display: "none" }}
-                ref={fileInputRef}
-                onChange={handleAvatarChange}
-                disabled={uploading}
-              />
+    <div className="min-h-screen bg-gradient-to-br from-blue-100 via-purple-100 to-teal-100 flex items-center justify-center py-10">
+      <div className="w-full max-w-2xl bg-white/80 backdrop-blur-md rounded-3xl shadow-2xl p-8 relative">
+        {/* Logout Button */}
+        <button
+          className="absolute top-6 right-8 bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-full font-semibold shadow"
+          onClick={() => {
+            localStorage.removeItem('access_token');
+            navigate('/login');
+          }}
+          type="button"
+        >
+          Logout
+        </button>
+        {/* Top Banner */}
+        <div className="h-28 w-full bg-gradient-to-r from-blue-400 via-purple-400 to-teal-300 rounded-2xl mb-12 relative flex items-end">
+          <img
+            src={avatarPreview || defaultAvatar}
+            alt="Profile"
+            className="w-28 h-28 rounded-full border-4 border-white shadow-lg absolute left-8 -bottom-14 object-cover bg-white cursor-pointer"
+            onClick={() => fileInputRef.current?.click()}
+          />
+          <input
+            type="file"
+            accept="image/*"
+            style={{ display: "none" }}
+            ref={fileInputRef}
+            onChange={handleAvatarChange}
+            disabled={uploading}
+          />
+          {uploading && (
+            <div className="absolute left-8 -bottom-14 w-28 h-28 flex items-center justify-center bg-black bg-opacity-40 rounded-full">
+              <span className="text-white text-xs">Uploading...</span>
             </div>
-            <span className="text-gray-600 text-sm">Click photo to change</span>
-          </div>
-          <button onClick={handleLogout} className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600">Logout</button>
+          )}
         </div>
-        <h1 className="text-2xl font-bold mb-4">Edit Profile</h1>
+        <h1 className="text-3xl font-extrabold text-blue-800 mb-6 text-center">Edit Your Profile</h1>
         {error && <div className="text-red-600 mb-2 p-2 bg-red-50 rounded">{error}</div>}
         {success && <div className="text-green-600 mb-2 p-2 bg-green-50 rounded">{success}</div>}
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Name */}
           <div>
-            <label className="block font-medium">Name</label>
+            <label className="block text-gray-700 font-semibold mb-1">Name</label>
             <input
               type="text"
               name="name"
-              value={form.name}
+              value={form.name || ""}
               onChange={handleChange}
-              className="w-full border rounded px-3 py-2"
-              required
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none transition"
+              disabled={uploading}
             />
           </div>
+          {/* Title */}
           <div>
-            <label className="block font-medium">Professional Title</label>
+            <label className="block text-gray-700 font-semibold mb-1">Title</label>
             <input
               type="text"
               name="title"
-              value={form.title}
+              value={form.title || ""}
               onChange={handleChange}
-              className="w-full border rounded px-3 py-2"
-              placeholder="e.g., Software Engineer, Marketing Manager"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-400 focus:outline-none transition"
+              disabled={uploading}
             />
           </div>
+          {/* Location */}
           <div>
-            <label className="block font-medium">Location</label>
+            <label className="block text-gray-700 font-semibold mb-1">Location</label>
             <input
               type="text"
               name="location"
-              value={form.location}
+              value={form.location || ""}
               onChange={handleChange}
-              className="w-full border rounded px-3 py-2"
-              placeholder="e.g., San Francisco, CA"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-400 focus:outline-none transition"
+              disabled={uploading}
             />
           </div>
+          {/* Bio */}
           <div>
-            <label className="block font-medium">Bio</label>
+            <label className="block text-gray-700 font-semibold mb-1">Bio</label>
             <textarea
               name="bio"
-              value={form.bio}
+              value={form.bio || ""}
               onChange={handleChange}
-              className="w-full border rounded px-3 py-2"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-200 focus:outline-none transition"
               rows={3}
-              placeholder="Tell us about yourself..."
+              disabled={uploading}
             />
           </div>
+          {/* Skills */}
           <div>
-            <label className="block font-medium">Skills (comma separated)</label>
+            <label className="block text-gray-700 font-semibold mb-1">Skills (comma separated)</label>
             <input
               type="text"
               name="skills"
-              value={form.skills.join(", ")}
+              value={Array.isArray(form.skills) ? form.skills.join(", ") : ""}
               onChange={handleSkillsChange}
-              className="w-full border rounded px-3 py-2"
-              placeholder="e.g., JavaScript, Python, React"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-200 focus:outline-none transition"
+              disabled={uploading}
             />
-          </div>
-          {/* Education */}
-          <div>
-            <label className="block font-medium">Education</label>
-            {form.education.map((edu, idx) => (
-              <div key={idx} className="mb-2 border p-2 rounded">
-                <input
-                  type="text"
-                  name="institution"
-                  placeholder="Institution"
-                  value={edu.institution}
-                  onChange={e => handleEduChange(idx, e)}
-                  className="w-full mb-1 border rounded px-2 py-1"
-                />
-                <input
-                  type="text"
-                  name="degree"
-                  placeholder="Degree"
-                  value={edu.degree}
-                  onChange={e => handleEduChange(idx, e)}
-                  className="w-full mb-1 border rounded px-2 py-1"
-                />
-                <input
-                  type="text"
-                  name="period"
-                  placeholder="Period (e.g., 2018-2022)"
-                  value={edu.period}
-                  onChange={e => handleEduChange(idx, e)}
-                  className="w-full mb-1 border rounded px-2 py-1"
-                />
-                {form.education.length > 1 && (
-                  <button type="button" onClick={() => removeEdu(idx)} className="text-red-600 text-xs">Remove</button>
-                )}
-              </div>
-            ))}
-            <button type="button" onClick={addEdu} className="text-blue-600 text-xs">+ Add Education</button>
           </div>
           {/* Experience */}
           <div>
@@ -318,7 +278,7 @@ const ProfileEdit: React.FC = () => {
                   type="text"
                   name="company"
                   placeholder="Company"
-                  value={exp.company}
+                  value={exp.company || ""}
                   onChange={e => handleExpChange(idx, e)}
                   className="w-full mb-1 border rounded px-2 py-1"
                 />
@@ -326,7 +286,7 @@ const ProfileEdit: React.FC = () => {
                   type="text"
                   name="role"
                   placeholder="Role"
-                  value={exp.role}
+                  value={exp.role || ""}
                   onChange={e => handleExpChange(idx, e)}
                   className="w-full mb-1 border rounded px-2 py-1"
                 />
@@ -334,14 +294,14 @@ const ProfileEdit: React.FC = () => {
                   type="text"
                   name="period"
                   placeholder="Period (e.g., 2020-2023)"
-                  value={exp.period}
+                  value={exp.period || ""}
                   onChange={e => handleExpChange(idx, e)}
                   className="w-full mb-1 border rounded px-2 py-1"
                 />
                 <textarea
                   name="description"
                   placeholder="Description"
-                  value={exp.description}
+                  value={exp.description || ""}
                   onChange={e => handleExpChange(idx, e)}
                   className="w-full mb-1 border rounded px-2 py-1"
                   rows={2}
@@ -353,6 +313,42 @@ const ProfileEdit: React.FC = () => {
             ))}
             <button type="button" onClick={addExp} className="text-blue-600 text-xs">+ Add Experience</button>
           </div>
+          {/* Education */}
+          <div>
+            <label className="block font-medium">Education</label>
+            {form.education.map((edu, idx) => (
+              <div key={idx} className="mb-2 border p-2 rounded">
+                <input
+                  type="text"
+                  name="institution"
+                  placeholder="Institution"
+                  value={edu.institution || ""}
+                  onChange={e => handleEduChange(idx, e)}
+                  className="w-full mb-1 border rounded px-2 py-1"
+                />
+                <input
+                  type="text"
+                  name="degree"
+                  placeholder="Degree"
+                  value={edu.degree || ""}
+                  onChange={e => handleEduChange(idx, e)}
+                  className="w-full mb-1 border rounded px-2 py-1"
+                />
+                <input
+                  type="text"
+                  name="period"
+                  placeholder="Period (e.g., 2018-2022)"
+                  value={edu.period || ""}
+                  onChange={e => handleEduChange(idx, e)}
+                  className="w-full mb-1 border rounded px-2 py-1"
+                />
+                {form.education.length > 1 && (
+                  <button type="button" onClick={() => removeEdu(idx)} className="text-red-600 text-xs">Remove</button>
+                )}
+              </div>
+            ))}
+            <button type="button" onClick={addEdu} className="text-blue-600 text-xs">+ Add Education</button>
+          </div>
           {/* Contact */}
           <div>
             <label className="block font-medium">Contact Information</label>
@@ -360,7 +356,7 @@ const ProfileEdit: React.FC = () => {
               type="email"
               name="email"
               placeholder="Email"
-              value={form.contact.email}
+              value={form.contact.email || ""}
               onChange={handleContactChange}
               className="w-full mb-1 border rounded px-2 py-1"
             />
@@ -368,7 +364,7 @@ const ProfileEdit: React.FC = () => {
               type="tel"
               name="phone"
               placeholder="Phone"
-              value={form.contact.phone}
+              value={form.contact.phone || ""}
               onChange={handleContactChange}
               className="w-full mb-1 border rounded px-2 py-1"
             />
@@ -376,18 +372,28 @@ const ProfileEdit: React.FC = () => {
               type="text"
               name="location"
               placeholder="Location"
-              value={form.contact.location}
+              value={form.contact.location || ""}
               onChange={handleContactChange}
               className="w-full mb-1 border rounded px-2 py-1"
             />
           </div>
-          <button
-            type="submit"
-            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 disabled:bg-gray-400"
-            disabled={uploading}
-          >
-            {uploading ? "Uploading..." : "Save Changes"}
-          </button>
+          <div className="flex justify-between mt-8">
+            <button
+              type="button"
+              onClick={() => navigate("/profile")}
+              className="bg-gray-200 text-gray-700 px-6 py-2 rounded-full font-semibold shadow hover:bg-gray-300 transition"
+              disabled={uploading}
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="bg-gradient-to-r from-blue-500 to-purple-500 text-white font-bold px-8 py-2 rounded-full shadow-lg hover:scale-105 hover:from-purple-500 hover:to-blue-500 transition-all duration-200"
+              disabled={uploading}
+            >
+              Save Changes
+            </button>
+          </div>
         </form>
       </div>
     </div>

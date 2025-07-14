@@ -1,0 +1,10 @@
+500 Can't connect to -:80 (Name or service not known)
+Content-Type: text/plain
+Client-Date: Sat, 12 Jul 2025 06:28:53 GMT
+Client-Warning: Internal response
+
+500 Can't connect to post-list:80 (Temporary failure in name resolution)
+Content-Type: text/plain
+Client-Date: Sat, 12 Jul 2025 06:28:54 GMT
+Client-Warning: Internal response
+

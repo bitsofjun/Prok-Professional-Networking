@@ -7,6 +7,7 @@ from PIL import Image
 import io
 import secrets
 import json
+from flask_jwt_extended import jwt_required, get_jwt_identity
 
 profile_bp = Blueprint('profile', __name__)
  
@@ -24,16 +25,29 @@ def ensure_upload_folder():
 
 # GET /api/profile
 @profile_bp.route('/profile', methods=['GET'])
+@jwt_required()
 def get_profile():
     try:
-        user_id = 1  # Replace with actual user auth in production
+        user_id = get_jwt_identity()  # Use the real user ID from JWT
         profile = Profile.query.filter_by(user_id=user_id).first()
         
         if not profile:
-            # Auto-create a default profile if not found
-            profile = Profile(user_id=user_id, name='Default User')
-            db.session.add(profile)
-            db.session.commit()
+            # Return empty profile data for new users instead of creating a default profile
+            return jsonify({
+                'id': None,
+                'user_id': user_id,
+                'name': '',
+                'avatar': '',
+                'title': '',
+                'location': '',
+                'bio': '',
+                'skills': '',
+                'experience': [],
+                'education': [],
+                'contact': {},
+                'social': {},
+                'activity': []
+            })
         
         # Parse JSON fields
         social = json.loads(profile.social) if profile.social else {}
@@ -63,40 +77,31 @@ def get_profile():
 
 # PUT /api/profile
 @profile_bp.route('/profile', methods=['PUT'])
+@jwt_required()
 def update_profile():
     try:
-        user_id = 1  # Replace with actual user auth in production
+        user_id = get_jwt_identity()
         data = request.get_json()
-        
-        if not data:
-            return jsonify({'error': 'No data provided'}), 400
-        
+        if not data or not data.get('name'):
+            return jsonify({'error': 'Name is required'}), 400
+
         profile = Profile.query.filter_by(user_id=user_id).first()
         if not profile:
-            # Auto-create profile if not found
-            profile = Profile(user_id=user_id, name=data.get('name', ''))
+            profile = Profile(user_id=user_id)
             db.session.add(profile)
-        
-        # Update fields
-        fields_to_update = ['name', 'title', 'location', 'bio', 'skills']
-        for field in fields_to_update:
+
+        # Update all simple fields
+        for field in ['name', 'title', 'location', 'bio', 'skills', 'email', 'avatar']:
             if field in data:
                 setattr(profile, field, data[field])
-        
-        # Handle JSON fields
-        if 'experience' in data:
-            profile.experience = json.dumps(data['experience'])
-        if 'education' in data:
-            profile.education = json.dumps(data['education'])
-        if 'contact' in data:
-            profile.contact = json.dumps(data['contact'])
-        if 'social' in data:
-            profile.social = json.dumps(data['social'])
-        if 'activity' in data:
-            profile.activity = json.dumps(data['activity'])
-        
+
+        # Update JSON fields
+        for field in ['experience', 'education', 'contact', 'social', 'activity']:
+            if field in data:
+                setattr(profile, field, json.dumps(data[field]))
+
         db.session.commit()
-        
+
         return jsonify({
             'message': 'Profile updated successfully',
             'profile': {
@@ -107,7 +112,13 @@ def update_profile():
                 'title': profile.title,
                 'location': profile.location,
                 'bio': profile.bio,
-                'skills': profile.skills
+                'skills': profile.skills,
+                'email': getattr(profile, 'email', ''),
+                'experience': json.loads(profile.experience) if profile.experience else [],
+                'education': json.loads(profile.education) if profile.education else [],
+                'contact': json.loads(profile.contact) if profile.contact else {},
+                'social': json.loads(profile.social) if profile.social else {},
+                'activity': json.loads(profile.activity) if profile.activity else []
             }
         })
     except Exception as e:
@@ -117,9 +128,10 @@ def update_profile():
 
 # POST /api/profile/image
 @profile_bp.route('/profile/image', methods=['POST'])
+@jwt_required()
 def upload_profile_image():
     try:
-        user_id = 1  # Replace with actual user auth in production
+        user_id = get_jwt_identity()  # Use the real user ID from JWT
         
         if 'image' not in request.files:
             return jsonify({'error': 'No image file provided'}), 400
@@ -177,7 +189,7 @@ def upload_profile_image():
         # Update profile with new image
         profile = Profile.query.filter_by(user_id=user_id).first()
         if not profile:
-            profile = Profile(user_id=user_id, name='Default User')
+            profile = Profile(user_id=user_id, name='')
             db.session.add(profile)
         
         profile.avatar = filename

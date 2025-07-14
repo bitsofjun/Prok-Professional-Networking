@@ -54,7 +54,7 @@ const PostCreate: React.FC = () => {
       if (media) formData.append('media', media);
       formData.append('is_public', isPublic ? 'true' : 'false');
       formData.append('allow_comments', allowComments ? 'true' : 'false');
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('access_token');
       const response = await fetch('http://localhost:5001/api/posts', {
         method: 'POST',
         headers: token ? { 'Authorization': `Bearer ${token}` } : undefined,

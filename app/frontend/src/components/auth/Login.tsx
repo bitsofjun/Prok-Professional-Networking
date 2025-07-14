@@ -9,6 +9,7 @@ const Login: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [apiError, setApiError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
   const { login } = useAuth();
 
@@ -42,10 +43,12 @@ const Login: React.FC = () => {
         setApiError(response.error);
       } else {
         setSuccessMessage('Login successful! Redirecting to profile...');
+        // Store access token in localStorage
+        if (response.access_token) {
+          localStorage.setItem('access_token', response.access_token);
+        }
         login(response.user); // Use context login
-        setTimeout(() => {
-          navigate('/profile');
-        }, 1000);
+        navigate('/profile'); // Redirect immediately
       }
     } catch (error) {
       setApiError('Network error. Please try again.');
@@ -55,56 +58,64 @@ const Login: React.FC = () => {
   };
 
   return (
-    <div className="flex justify-center bg-gray-50 py-16 min-h-[calc(100vh-4rem)]">
-      <div className="max-w-md w-full space-y-8 p-8 bg-white rounded-lg shadow mt-8">
-        <h2 className="text-3xl font-bold text-center text-gray-900">Login</h2>
-        {apiError && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
-            {apiError}
-          </div>
-        )}
-        {successMessage && (
-          <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded">
-            {successMessage}
-          </div>
-        )}
-        <form className="space-y-6" onSubmit={handleSubmit} noValidate>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-100 via-purple-100 to-teal-100">
+      <div className="bg-white/80 backdrop-blur-md rounded-2xl shadow-2xl p-8 w-full max-w-md">
+        <h2 className="text-3xl font-bold text-center text-blue-700 mb-6 drop-shadow">Sign In to <span className="text-purple-600">ProkNet</span></h2>
+        <form onSubmit={handleSubmit} className="space-y-6">
           <div>
-            <label className="block text-gray-700">Username or Email</label>
+            <label className="block text-gray-700 font-semibold mb-1">Username or Email</label>
             <input
               type="text"
               name="usernameOrEmail"
               value={form.usernameOrEmail}
               onChange={handleChange}
-              className="mt-1 w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none transition"
               disabled={isLoading}
+              autoFocus
             />
-            {errors.usernameOrEmail && <p className="text-red-500 text-sm">{errors.usernameOrEmail}</p>}
+            {errors.usernameOrEmail && <div className="text-red-500 text-sm mt-1">{errors.usernameOrEmail}</div>}
           </div>
           <div>
-            <label className="block text-gray-700">Password</label>
-            <input
-              type="password"
-              name="password"
-              value={form.password}
-              onChange={handleChange}
-              className="mt-1 w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-              disabled={isLoading}
-            />
-            {errors.password && <p className="text-red-500 text-sm">{errors.password}</p>}
+            <label className="block text-gray-700 font-semibold mb-1">Password</label>
+            <div className="relative">
+              <input
+                type={showPassword ? 'text' : 'password'}
+                name="password"
+                value={form.password}
+                onChange={handleChange}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none transition pr-10"
+                disabled={isLoading}
+              />
+              <button
+                type="button"
+                tabIndex={-1}
+                className="absolute inset-y-0 right-0 px-3 flex items-center text-gray-400 hover:text-blue-600 focus:outline-none"
+                onClick={() => setShowPassword((prev) => !prev)}
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
+              >
+                {showPassword ? (
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-5.523 0-10-4.477-10-10 0-1.657.403-3.221 1.125-4.575m1.664-2.13A9.956 9.956 0 0112 3c5.523 0 10 4.477 10 10 0 1.657-.403 3.221-1.125 4.575m-1.664 2.13A9.956 9.956 0 0112 21c-5.523 0-10-4.477-10-10 0-1.657.403-3.221 1.125-4.575" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                ) : (
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-5.523 0-10-4.477-10-10 0-1.657.403-3.221 1.125-4.575m1.664-2.13A9.956 9.956 0 0112 3c5.523 0 10 4.477 10 10 0 1.657-.403 3.221-1.125 4.575m-1.664 2.13A9.956 9.956 0 0112 21c-5.523 0-10-4.477-10-10 0-1.657.403-3.221 1.125-4.575" /></svg>
+                )}
+              </button>
+            </div>
+            {errors.password && <div className="text-red-500 text-sm mt-1">{errors.password}</div>}
           </div>
+          {apiError && <div className="text-red-600 bg-red-50 rounded p-2 text-center">{apiError}</div>}
+          {successMessage && <div className="text-green-600 bg-green-50 rounded p-2 text-center">{successMessage}</div>}
           <button
             type="submit"
-            className="w-full py-2 px-4 bg-blue-600 text-white rounded hover:bg-blue-700 transition disabled:opacity-50"
+            className="w-full bg-gradient-to-r from-blue-500 to-purple-500 text-white font-bold py-2 rounded-full shadow-lg hover:scale-105 hover:from-purple-500 hover:to-blue-500 transition-all duration-200"
             disabled={isLoading}
           >
-            {isLoading ? 'Logging in...' : 'Login'}
+            {isLoading ? 'Signing in...' : 'Sign In'}
           </button>
         </form>
-        <p className="text-center text-gray-600">
-          Don't have an account?{' '}
-          <Link to="/signup" className="text-blue-600 hover:underline">Sign up</Link>
-        </p>
+        <div className="mt-6 text-center text-gray-600">
+          Don&apos;t have an account?{' '}
+          <Link to="/signup" className="text-blue-600 font-semibold hover:underline">Sign Up</Link>
+        </div>
       </div>
     </div>
   );

@@ -3,6 +3,8 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from extensions import db
 from models.user import User
 from models.profile import Profile
+from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
+from flask_cors import CORS
 
 auth_bp = Blueprint('auth', __name__)
  
@@ -22,8 +24,10 @@ def login():
     ).first()
     
     if user and check_password_hash(user.password_hash, password):
+        access_token = create_access_token(identity=str(user.id))
         return jsonify({
             'message': 'Login successful',
+            'access_token': access_token,
             'user': {
                 'id': user.id,
                 'username': user.username,

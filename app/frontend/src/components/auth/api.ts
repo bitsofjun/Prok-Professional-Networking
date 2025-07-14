@@ -22,15 +22,20 @@ export const authApi = {
 
 export const profileApi = {
   getProfile: async () => {
-    const response = await fetch(`${API_URL}/profile`);
+    const token = localStorage.getItem('access_token');
+    const response = await fetch(`${API_URL}/profile`, {
+      headers: token ? { 'Authorization': `Bearer ${token}` } : {},
+    });
     return response.json();
   },
 
   updateProfile: async (profileData: any) => {
+    const token = localStorage.getItem('access_token');
     const response = await fetch(`${API_URL}/profile`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
+        ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
       },
       body: JSON.stringify(profileData),
     });
