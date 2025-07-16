@@ -4,7 +4,6 @@ import 'react-quill/dist/quill.snow.css';
 import { useDropzone } from 'react-dropzone';
 
 const MAX_FILE_SIZE_MB = 10;
-const ACCEPTED_TYPES = ['image/*', 'video/*'];
 
 const PostCreate: React.FC = () => {
   const [title, setTitle] = useState('');
