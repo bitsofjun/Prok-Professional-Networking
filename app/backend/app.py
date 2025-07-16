@@ -20,7 +20,7 @@ from flask_migrate import Migrate
 from sqlalchemy import create_engine
 
 # Use the environment variable for the database URI
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('mysql+pymysql://root:arjun*0347@localhost/prok_db')
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('SQLALCHEMY_DATABASE_URI')
 app.config['MAX_CONTENT_LENGTH'] = MAX_CONTENT_LENGTH
 app.config['JWT_SECRET_KEY'] = 'your-very-secret-key'  # Change this to a strong secret!
 jwt = JWTManager(app)
