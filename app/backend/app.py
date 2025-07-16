@@ -20,7 +20,7 @@ from flask_migrate import Migrate
 from sqlalchemy import create_engine
 
 # Use the environment variable for the database URI
-app.config['SQLALCHEMY_DATABASE_URI'] = "mysql+pymysql://root:arjun*0347@localhost/prok_db"
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('SQLALCHEMY_DATABASE_URI')
 app.config['MAX_CONTENT_LENGTH'] = MAX_CONTENT_LENGTH
 app.config['JWT_SECRET_KEY'] = 'your-very-secret-key'  # Change this to a strong secret!
 jwt = JWTManager(app)
@@ -66,8 +66,3 @@ def uploaded_post_media(filename):
 
 if __name__ == "__main__":
     app.run(port=5001, debug=True)
-
-engine = create_engine("mysql+pymysql://root:arjun*0347@localhost/prok_db")
-conn = engine.connect()
-print("Connection successful!")
-conn.close()
