@@ -17,6 +17,7 @@ from flask_jwt_extended import JWTManager
 from flask_jwt_extended.exceptions import NoAuthorizationError, InvalidHeaderError
 from flask import jsonify
 
+# Use the environment variable for the database URI
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('SQLALCHEMY_DATABASE_URI')
 app.config['MAX_CONTENT_LENGTH'] = MAX_CONTENT_LENGTH
 app.config['JWT_SECRET_KEY'] = 'your-very-secret-key'  # Change this to a strong secret!
