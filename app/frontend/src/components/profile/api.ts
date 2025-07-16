@@ -1,10 +1,10 @@
-const API_URL = 'http://localhost:5001/api';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001';
 
 export const profileApi = {
   getProfile: async () => {
     try {
       const token = localStorage.getItem('access_token');
-      const response = await fetch(`${API_URL}/profile`, {
+      const response = await fetch(`${API_URL}/api/profile`, {
         headers: token ? { 'Authorization': `Bearer ${token}` } : {},
       });
       if ((response.status === 401 || response.status === 422)) {
@@ -33,7 +33,7 @@ export const profileApi = {
   updateProfile: async (profileData: any) => {
     try {
       const token = localStorage.getItem('access_token');
-      const response = await fetch(`${API_URL}/profile`, {
+      const response = await fetch(`${API_URL}/api/profile`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -64,7 +64,7 @@ export const profileApi = {
       formData.append('image', file);
 
       const token = localStorage.getItem('access_token');
-      const response = await fetch(`${API_URL}/profile/image`, {
+      const response = await fetch(`${API_URL}/api/profile/image`, {
         method: 'POST',
         headers: token ? { 'Authorization': `Bearer ${token}` } : {},
         body: formData,
