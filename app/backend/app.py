@@ -6,7 +6,7 @@ from api import auth_bp, profile_bp, posts_bp, feed_bp, jobs_bp, messaging_bp
 from extensions import db
 import os
 from flask import send_from_directory
-ALLOWED_ORIGINS = os.getenv('ALLOWED_ORIGINS', 'http://localhost:5173,http://127.0.0.1:5173,https://your-frontend-url.onrender.com').split(',')
+ALLOWED_ORIGINS = os.getenv('ALLOWED_ORIGINS', 'https://prok-professional-networking-frontend.onrender.com,http://localhost:5173,http://127.0.0.1:5173,https://prok-professional-networking-1-cps1.onrender.com').split(',')
 CORS(app,
      origins=ALLOWED_ORIGINS,
      methods=['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
@@ -17,7 +17,7 @@ from flask_jwt_extended import JWTManager
 from flask_jwt_extended.exceptions import NoAuthorizationError, InvalidHeaderError
 from flask import jsonify
 
-app.config['SQLALCHEMY_DATABASE_URI'] = "mysql+pymysql://root:arjun*0347@localhost/prok_db"
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('SQLALCHEMY_DATABASE_URI')
 app.config['MAX_CONTENT_LENGTH'] = MAX_CONTENT_LENGTH
 app.config['JWT_SECRET_KEY'] = 'your-very-secret-key'  # Change this to a strong secret!
 jwt = JWTManager(app)

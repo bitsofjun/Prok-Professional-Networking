@@ -1,2 +1,7 @@
+Flask==2.3.3
+Flask-SQLAlchemy==3.0.5
 Flask-Migrate==4.1.0
 gunicorn
+
+mysqlclient==2.2.0
+pymysql
