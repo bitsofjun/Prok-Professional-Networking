@@ -6,7 +6,7 @@ from api import auth_bp, profile_bp, posts_bp, feed_bp, jobs_bp, messaging_bp
 from extensions import db
 import os
 from flask import send_from_directory
-ALLOWED_ORIGINS = os.getenv('ALLOWED_ORIGINS', 'https://prok-professional-networking-frontend.onrender.com,http://localhost:5173,http://127.0.0.1:5173,https://prok-professional-networking-1-cps1.onrender.com').split(',')
+ALLOWED_ORIGINS = os.getenv('ALLOWED_ORIGINS', 'http://localhost:5173').split(',')
 CORS(app,
      origins=ALLOWED_ORIGINS,
      methods=['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
@@ -16,14 +16,18 @@ CORS(app,
 from flask_jwt_extended import JWTManager
 from flask_jwt_extended.exceptions import NoAuthorizationError, InvalidHeaderError
 from flask import jsonify
+from flask_migrate import Migrate
+from sqlalchemy import create_engine
 
 # Use the environment variable for the database URI
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('SQLALCHEMY_DATABASE_URI')
+app.config['SQLALCHEMY_DATABASE_URI'] = "mysql+pymysql://root:arjun*0347@localhost/prok_db"
 app.config['MAX_CONTENT_LENGTH'] = MAX_CONTENT_LENGTH
 app.config['JWT_SECRET_KEY'] = 'your-very-secret-key'  # Change this to a strong secret!
 jwt = JWTManager(app)
 
 db.init_app(app)
+
+migrate = Migrate(app, db)
 
 app.register_blueprint(auth_bp, url_prefix='/api/auth')
 app.register_blueprint(profile_bp, url_prefix='/api')
@@ -62,3 +66,8 @@ def uploaded_post_media(filename):
 
 if __name__ == "__main__":
     app.run(port=5001, debug=True)
+
+engine = create_engine("mysql+pymysql://root:arjun*0347@localhost/prok_db")
+conn = engine.connect()
+print("Connection successful!")
+conn.close()
