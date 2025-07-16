@@ -1,4 +1,5 @@
 from flask import Flask
+app = Flask(__name__)
 from flask_cors import CORS
 from config import MAX_CONTENT_LENGTH
 from api import auth_bp, profile_bp, posts_bp, feed_bp, jobs_bp, messaging_bp
@@ -16,7 +17,6 @@ from flask_jwt_extended import JWTManager
 from flask_jwt_extended.exceptions import NoAuthorizationError, InvalidHeaderError
 from flask import jsonify
 
-app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = "mysql+pymysql://root:arjun*0347@localhost/prok_db"
 app.config['MAX_CONTENT_LENGTH'] = MAX_CONTENT_LENGTH
 app.config['JWT_SECRET_KEY'] = 'your-very-secret-key'  # Change this to a strong secret!
