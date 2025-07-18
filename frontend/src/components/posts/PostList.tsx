@@ -111,7 +111,11 @@ const PostList: React.FC<PostListProps> = ({ showMedia = true }) => {
               {/* Media */}
               {showMedia && post.media_url && (
                 <img
-                  src={post.media_url.startsWith("http") ? post.media_url : `${IMAGE_URL}${post.media_url}`}
+                  src={
+                    post.media_url.startsWith("http")
+                      ? post.media_url
+                      : `${IMAGE_URL.replace(/\/$/, "")}${post.media_url}`
+                  }
                   alt="media"
                   className="rounded-lg mt-2 max-h-80 object-cover mx-auto"
                 />
