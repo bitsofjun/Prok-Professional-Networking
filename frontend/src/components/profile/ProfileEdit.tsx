@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { profileApi } from "./api";
 import defaultAvatar from "../../assets/react.svg"; // Or your default avatar path
 
-const IMAGE_URL = "http://localhost:5001";
+const IMAGE_URL = import.meta.env.VITE_API_URL || "http://localhost:5001";
 
 type EducationItem = { institution: string; degree: string; period: string };
 type ExperienceItem = { company: string; role: string; period: string; description: string };

@@ -4,7 +4,7 @@ import SocialLinks from "./SocialLinks";
 import { profileApi } from "./api";
 import { useNavigate, useLocation as useRouterLocation } from "react-router-dom";
 
-const IMAGE_URL = "http://localhost:5001";
+const IMAGE_URL = import.meta.env.VITE_API_URL || "http://localhost:5001";
 
 const ProfileView: React.FC = () => {
   const [profile, setProfile] = useState<any>(null);
