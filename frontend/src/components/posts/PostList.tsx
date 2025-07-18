@@ -17,7 +17,7 @@ interface PostListProps {
   showMedia?: boolean;
 }
 
-const IMAGE_URL = "http://localhost:5001";
+const IMAGE_URL = import.meta.env.VITE_API_URL || "http://localhost:5001";
 
 function stripHtml(html: string) {
   const div = document.createElement("div");
