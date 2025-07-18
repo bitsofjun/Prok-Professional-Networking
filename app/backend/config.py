@@ -11,7 +11,8 @@ DATABASE_URL = os.environ.get('DATABASE_URL')
 if DATABASE_URL and DATABASE_URL.startswith('postgres://'):
     DATABASE_URL = DATABASE_URL.replace('postgres://', 'postgresql://', 1)
 
-SQLALCHEMY_DATABASE_URI = DATABASE_URL or 'mysql://root:arjun*0347@localhost/prok_db?charset=utf8mb4'
+SQLALCHEMY_DATABASE_URI = DATABASE_URL or 'mysql+pymysql://root:arjun%2A0347@localhost/prok_db?charset=utf8mb4
+'
 
 MAX_CONTENT_LENGTH = 10 * 1024 * 1024  # 10 MB
 
