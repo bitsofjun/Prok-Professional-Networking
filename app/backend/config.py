@@ -15,4 +15,4 @@ SQLALCHEMY_DATABASE_URI = DATABASE_URL or 'mysql://root:arjun*0347@localhost/pro
 
 MAX_CONTENT_LENGTH = 10 * 1024 * 1024  # 10 MB
 
-ALLOWED_ORIGINS=https://prok-frontend-h1wa.onrender.com
+ALLOWED_ORIGINS = "https://prok-frontend-h1wa.onrender.com"
